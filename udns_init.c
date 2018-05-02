@@ -24,7 +24,7 @@
 #ifdef HAVE_CONFIG_H
 # include "config.h"
 #endif
-#ifdef WINDOWS
+#ifdef _WIN32
 # include <winsock2.h>          /* includes <windows.h> */
 # include <iphlpapi.h>		/* for dns server addresses etc */
 #else
@@ -53,7 +53,7 @@ static void dns_set_srch_internal(struct dns_ctx *ctx, char *srch) {
     dns_add_srch(ctx, srch);
 }
 
-#ifdef WINDOWS
+#ifdef _WIN32
 
 #ifndef NO_IPHLPAPI
 /* Apparently, some systems does not have proper headers for IPHLPAIP to work.
@@ -75,7 +75,7 @@ static int dns_initns_iphlpapi(struct dns_ctx *ctx) {
   DWORD dwRetVal;
   int ret = -1;
 
-  h_iphlpapi = LoadLibrary("iphlpapi.dll");
+  h_iphlpapi = LoadLibraryW(L"iphlpapi.dll");
   if (!h_iphlpapi)
     return -1;
   pfnGetAdAddrs = (GetAdaptersAddressesFunc)
@@ -116,17 +116,17 @@ static int dns_initns_registry(struct dns_ctx *ctx) {
 
 #define REGKEY_WINNT "SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters"
 #define REGKEY_WIN9x "SYSTEM\\CurrentControlSet\\Services\\VxD\\MSTCP"
-  res = RegOpenKeyEx(HKEY_LOCAL_MACHINE, REGKEY_WINNT, 0, KEY_QUERY_VALUE, &hk);
+  res = RegOpenKeyExA(HKEY_LOCAL_MACHINE, REGKEY_WINNT, 0, KEY_QUERY_VALUE, &hk);
   if (res != ERROR_SUCCESS)
-    res = RegOpenKeyEx(HKEY_LOCAL_MACHINE, REGKEY_WIN9x,
+    res = RegOpenKeyExA(HKEY_LOCAL_MACHINE, REGKEY_WIN9x,
                        0, KEY_QUERY_VALUE, &hk);
   if (res != ERROR_SUCCESS)
     return -1;
   len = sizeof(valBuf) - 1;
-  res = RegQueryValueEx(hk, "NameServer", NULL, &type, (BYTE*)valBuf, &len);
+  res = RegQueryValueExA(hk, "NameServer", NULL, &type, (BYTE*)valBuf, &len);
   if (res != ERROR_SUCCESS || !len || !valBuf[0]) {
     len = sizeof(valBuf) - 1;
-    res = RegQueryValueEx(hk, "DhcpNameServer", NULL, &type,
+    res = RegQueryValueExA(hk, "DhcpNameServer", NULL, &type,
                           (BYTE*)valBuf, &len);
   }
   RegCloseKey(hk);
@@ -217,7 +217,7 @@ int dns_init(struct dns_ctx *ctx, int do_open) {
     ctx = &dns_defctx;
   dns_reset(ctx);
 
-#ifdef WINDOWS
+#ifdef _WIN32
   if (dns_initns_iphlpapi(ctx) != 0)
     dns_initns_registry(ctx);
   /*XXX WINDOWS: probably good to get default domain and search list too...

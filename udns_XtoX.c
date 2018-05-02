@@ -27,12 +27,18 @@
 # include "config.h"
 #endif
 #include "udns.h"
-
+#ifdef _WIN32
+#define HAVE_INET_PTON_NTOP
+#endif
 #ifdef HAVE_INET_PTON_NTOP
 
+#ifdef _WIN32
+#include <WS2tcpip.h>
+#else
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#endif
 
 const char *dns_ntop(int af, const void *src, char *dst, int size) {
   return inet_ntop(af, src, dst, size);

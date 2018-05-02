@@ -25,7 +25,7 @@
 
 #define UDNS_VERSION "0.4"
 
-#ifdef WINDOWS
+#ifdef _WIN32
 # ifdef UDNS_DYNAMIC_LIBRARY
 #  ifdef DNS_LIBRARY_BUILD
 #   define UDNS_API __declspec(dllexport)
@@ -45,7 +45,9 @@
 #endif
 
 #include <sys/types.h>		/* for time_t */
-
+#ifdef _WIN32
+#include <time.h>
+#endif
 #ifdef __cplusplus
 extern "C" {
 #endif
